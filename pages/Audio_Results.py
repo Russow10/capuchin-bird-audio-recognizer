@@ -110,10 +110,60 @@ else:
         st.subheader("Capuchin Call Detection Results")
         if 'capuchin_calls' in results:
             st.write(f"**Capuchin Call Count:** {results['capuchin_calls']}")
+            
+            # If we have call timestamps, display them
+            if 'call_timestamps' in results and results['call_timestamps']:
+                st.subheader("Detected Call Timestamps")
+                
+                # Create a dataframe of call timestamps
+                call_data = []
+                for i, call in enumerate(results['call_timestamps']):
+                    call_data.append({
+                        "Call #": i + 1,
+                        "Start Time (s)": f"{call['start_time']:.2f}",
+                        "End Time (s)": f"{call['end_time']:.2f}",
+                        "Duration (s)": f"{call['end_time'] - call['start_time']:.2f}",
+                        "Confidence": f"{call['confidence']:.2%}"
+                    })
+                
+                # Display as a table
+                st.dataframe(pd.DataFrame(call_data))
+                
+                # Visualize calls on the audio timeline
+                if call_data:
+                    st.subheader("Call Visualization")
+                    fig, ax = plt.subplots(figsize=(10, 3))
+                    
+                    # Draw timeline
+                    ax.plot([0, results['duration']], [0, 0], 'k-', linewidth=2)
+                    
+                    # Mark call locations
+                    for call in results['call_timestamps']:
+                        # Draw a vertical line at the middle of each call
+                        ax.plot([call['mid_time'], call['mid_time']], [-0.1, 0.1], 'r-', linewidth=2)
+                        # Draw the call window
+                        ax.axvspan(call['start_time'], call['end_time'], alpha=0.3, color='orange')
+                    
+                    # Add labels and styling
+                    ax.set_xlabel('Time (seconds)')
+                    ax.set_title('Capuchin Call Locations')
+                    ax.set_yticks([])
+                    ax.set_xlim(0, results['duration'])
+                    ax.grid(axis='x', linestyle='--', alpha=0.7)
+                    
+                    st.pyplot(fig)
+                    
+                    # Add download button for call data
+                    csv = pd.DataFrame(call_data).to_csv(index=False)
+                    st.download_button(
+                        label="Download Call Data (CSV)",
+                        data=csv,
+                        file_name=f"capuchin_calls_{results['filename'].split('.')[0]}.csv",
+                        mime="text/csv"
+                    )
+            else:
+                st.info("No detailed call timing information available.")
         else:
             st.write("**Capuchin Call Count:** Not available")
-        if 'detection_log' in results:
-            st.text_area("Detection Log", results['detection_log'], height=300)
-        else:
-            st.info("No detection log available.")
+            st.info("Run the Capuchin call detection on the Upload Audio page to see results here.")
 

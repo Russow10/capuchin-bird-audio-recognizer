@@ -79,6 +79,9 @@ def count_capuchin_calls_two_stage_sliding_window(long_audio_path, model=None,
 
     capuchin_call_count = 0
     outer_window_start_time = 0.0
+    
+    # Store timestamps of detected calls
+    call_timestamps = []
 
     print(f"Processing audio file (Two-Stage Sliding Window - LATEST): {os.path.basename(long_audio_path)}")
     print(f"Total duration: {total_duration_seconds:.2f} seconds")
@@ -132,6 +135,14 @@ def count_capuchin_calls_two_stage_sliding_window(long_audio_path, model=None,
 
             if has_call_in_window:
                 capuchin_call_count += 1
+                # Store the timestamp of this call (midpoint of the window)
+                call_middle_time = outer_window_start_time + (outer_window_duration / 2)
+                call_timestamps.append({
+                    'start_time': outer_window_start_time,
+                    'end_time': outer_window_end_time,
+                    'mid_time': call_middle_time,
+                    'confidence': float(stage1_prediction_prob)
+                })
                 print("  Call Event Detected in Outer Window - Incrementing Call Count")
             else:
                 print("  Stage 2: No Call Event Detected in Outer Window (Despite Stage 1 Indication)")
@@ -139,7 +150,7 @@ def count_capuchin_calls_two_stage_sliding_window(long_audio_path, model=None,
         outer_start_sample = int(outer_window_start_time * sr_long)
 
     print(f"\nTotal Capuchin calls detected (Two-Stage Sliding Window - LATEST) in {os.path.basename(long_audio_path)}: {capuchin_call_count}\n")
-    return capuchin_call_count
+    return capuchin_call_count, call_timestamps
 
 # Load the capuchin model (cached to load only once)
 @st.cache_resource
@@ -172,19 +183,60 @@ if uploaded_file is not None:
         tmp_file.write(uploaded_file.getvalue())
         temp_audio_path = tmp_file.name
     st.session_state.temp_audio_path = temp_audio_path
+    
+    # Immediately load and display waveform and spectrogram when file is uploaded
+    with st.spinner("Loading audio visualization..."):
+        try:
+            y, sr = librosa.load(temp_audio_path)
+            
+            # Just display waveform, removing the spectrogram display
+            fig, ax = plt.subplots(figsize=(10, 4))
+            
+            # Plot waveform with improved styling
+            librosa.display.waveshow(y, sr=sr, ax=ax, alpha=0.8, color='#1976D2')
+            ax.set_title("Audio Waveform")
+            ax.set_xlabel("Time (seconds)")
+            ax.set_ylabel("Amplitude")
+            ax.grid(alpha=0.3)
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+            
+            # Store basic data in session
+            st.session_state.basic_audio_data = {
+                'y': y,
+                'sr': sr,
+                'duration': librosa.get_duration(y=y, sr=sr)
+            }
+            
+            # Display file information
+            duration = librosa.get_duration(y=y, sr=sr)
+            st.info(f"File: {uploaded_file.name} | Duration: {duration:.2f} seconds | Sample Rate: {sr} Hz")
+            
+        except Exception as e:
+            st.error(f"Error visualizing audio: {str(e)}")
 
     # Two buttons: one for general audio analysis and one for capuchin call detection
+    st.markdown("### Audio Analysis Options")
+    st.markdown("Choose one of the following analysis options:")
     col1, col2 = st.columns(2)
-    analyze_button = col1.button("Analyze Audio")
-    count_button = col2.button("Count Capuchin Calls")
+    analyze_button = col1.button("Analyze Audio", type="primary")
+    count_button = col2.button("Count Capuchin Calls", type="primary")
     
     # Audio analysis button callback
     if analyze_button:
         start_time = time.time()
         with st.spinner("Analyzing audio..."):
             try:
-                y, sr = librosa.load(temp_audio_path)
-                duration = librosa.get_duration(y=y, sr=sr)
+                # If we already loaded the basic data, use it instead of reloading
+                if hasattr(st.session_state, 'basic_audio_data'):
+                    y = st.session_state.basic_audio_data['y']
+                    sr = st.session_state.basic_audio_data['sr']
+                    duration = st.session_state.basic_audio_data['duration']
+                else:
+                    y, sr = librosa.load(temp_audio_path)
+                    duration = librosa.get_duration(y=y, sr=sr)
+                
                 analysis_results = {
                     'filename': uploaded_file.name,
                     'duration': duration,
@@ -229,12 +281,13 @@ if uploaded_file is not None:
             start_time = time.time()
             with st.spinner("Counting capuchin calls..."):
                 model = load_capuchin_model()
-                call_count = count_capuchin_calls_two_stage_sliding_window(temp_audio_path, model)
+                call_count, call_timestamps = count_capuchin_calls_two_stage_sliding_window(temp_audio_path, model)
             if call_count is not None:
                 st.session_state.analysis_results['capuchin_calls'] = call_count
+                st.session_state.analysis_results['call_timestamps'] = call_timestamps
                 elapsed = time.time() - start_time
                 st.success(f"Capuchin call detection executed in {elapsed:.2f} seconds!")
-                st.info("Capuchin call results and logs have been saved. Please visit the Results page to view detailed output.")
+                st.info("Capuchin call results have been saved. Please visit the Results page to view detailed output.")
             else:
                 st.error("An error occurred during capuchin call detection.")
 else:
