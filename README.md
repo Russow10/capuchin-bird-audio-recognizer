@@ -5,7 +5,7 @@ An advanced audio analysis tool designed for researchers and conservationists to
 ## Features
 
 - **Audio Upload & Processing**: Upload audio recordings and visualize waveforms for initial analysis
-- **AI-Powered Detection**: Automatically detect and count Capuchin bird calls using machine learning
+- **AI-Powered Detection**: Automatically detect and count Capuchin bird calls using deep learning
 - **Detailed Analysis**: View comprehensive analysis including spectrograms, MFCCs, energy levels, and more
 - **Timestamp Analysis**: Get precise timestamps of where bird calls occur in recordings
 - **Interactive Results**: Visual timeline and exportable CSV data of detected calls
@@ -15,7 +15,7 @@ An advanced audio analysis tool designed for researchers and conservationists to
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/capuchin-bird-audio-recognizer.git
+git clone https://github.com/Russow10/capuchin-bird-audio-recognizer.git
 cd capuchin-bird-audio-recognizer
 ```
 
