@@ -14,4 +14,5 @@ langchain_core>=0.0.10
 pypdf>=5.1.0
 tf-keras>=2.18.0
 transformers>=4.46.3
+resampy>=0.4.3
 # Add other dependencies as needed 
