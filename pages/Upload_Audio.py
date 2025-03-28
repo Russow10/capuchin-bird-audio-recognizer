@@ -155,7 +155,8 @@ def count_capuchin_calls_two_stage_sliding_window(long_audio_path, model=None,
 # Load the capuchin model (cached to load only once)
 @st.cache_resource
 def load_capuchin_model():
-    MODEL_WEIGHTS_FILE = r'weights\capuchin_bird_classifier.weights.h5'
+    # MODEL_WEIGHTS_FILE = r'weights\capuchin_bird_classifier.weights.h5'
+    MODEL_WEIGHTS_FILE = 'weights/capuchin_bird_classifier.weights.h5'
     input_shape = (128, 157, 3)
     input_tensor = Input(shape=input_shape)
     base_model = EfficientNetB0(include_top=False, weights=None, input_tensor=input_tensor)
