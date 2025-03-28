@@ -57,15 +57,21 @@ with col2:
 # Team and links in expanders
 with st.expander("Team"):
     st.markdown("""
-    This project was developed by a team of researchers and engineers dedicated to 
-    conservation technology. For more information, please contact the project lead.
+    ### Group B10
+
+    This project was developed by:
     
-    **Contact:** contact@example.com
+    - **Hariharan C K**
+    - **Hima Harikumar**
+    - **Sandra M P**
+    - **Siva S**
+    
+    *Guided by:* **Nisha P K**
     """)
 
 with st.expander("Links & Resources"):
     st.markdown("""
-    - [GitHub Repository](https://github.com/yourusername/capuchin-bird-audio-recognizer)
+    - [GitHub Repository](https://github.com/Russow10/capuchin-bird-audio-recognizer)
     - [Research Documentation](https://example.com/docs)
     """)
 
