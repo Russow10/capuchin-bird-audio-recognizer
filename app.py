@@ -1,10 +1,6 @@
 import streamlit as st
 import os
-import tensorflow as tf
 
-# Configure TensorFlow to use CPU only
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-tf.config.set_visible_devices([], 'GPU')
 
 # 1. PAGE CONFIG - MUST BE THE FIRST STREAMLIT COMMAND
 st.set_page_config(
